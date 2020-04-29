@@ -1,0 +1,24 @@
+---
+title: "Tidymodels intro"
+output: 
+  html_notebook:
+    toc: TRUE
+    toc_float: TRUE
+    highlight: tango
+    theme: darkly
+author: "Pablo Benavides-Herrera"
+date: "2020-04-29"
+---
+
+*Based on https://www.tidymodels.org/start/.*
+
+# Build a model
+
+The specific packages to be used here are `broom` and `parsnip`, contained in `tidymodels`.
+
+```{r pkgs, eval=FALSE}
+library(tidyverse)
+library(tidymodels)
+```
+
+
