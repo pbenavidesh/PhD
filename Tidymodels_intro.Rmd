@@ -1,13 +1,16 @@
 ---
 title: "Tidymodels intro"
-output: 
-  html_notebook:
-    toc: TRUE
-    toc_float: TRUE
-    highlight: tango
-    theme: darkly
 author: "Pablo Benavides-Herrera"
-date: "2020-04-29"
+date: '2020-04-29'
+output:
+  github_document:
+    toc: yes
+    dev: jpeg
+  html_notebook:
+    toc: yes
+    toc_float: yes
+    highlight: tango
+    theme: spacelab
 ---
 
 *Based on https://www.tidymodels.org/start/.*
@@ -16,9 +19,122 @@ date: "2020-04-29"
 
 The specific packages to be used here are `broom` and `parsnip`, contained in `tidymodels`.
 
-```{r pkgs, eval=FALSE}
+```{r pkgs}
 library(tidyverse)
 library(tidymodels)
 ```
 
+## Import, clean and visualize the data
+
+We first start reviewing the sea urchins data, loading it with `read_csv` from :
+
+```{r sea urchins}
+urchins <-
+  read_csv("https://tidymodels.org/start/models/urchins.csv") %>% 
+  # rename
+  setNames(c("food_regime", "initial_volume", "width")) %>% 
+  # change to factor
+  mutate(food_regime = factor(food_regime, levels = c("Initial", "Low", "High")))
+urchins
+```
+
+This [tibble](https://tibble.tidyverse.org/index.html) contains three variables or features regarding sea urchins used in an experiment by [Constable(1993)](https://link.springer.com/article/10.1007/BF00349318):
+
+* experimental feeding regime group (`food_regime`: one from `Initial`, `Low`, or `High`),
+
+* size (mm) at the start of the experiment (`initial_volume`), and
+
+* suture width at the end of the experiment (`width`).
+
+One of the very first steps when modelling data is plotting it:
+
+```{r sea urchins plot}
+urchins %>% 
+ggplot(aes(x = initial_volume, y = width, 
+           group = food_regime, col = food_regime)) + 
+  geom_point() + 
+  geom_smooth(method = lm, se = FALSE) +
+  scale_color_viridis_d(option = "plasma", end = .7)
+```
+
+## Build and fit a model: linear model
+
+We will first do a standard two-way analysis of variance model (ANOVA). We build a model that allows for two-way interactions in **R**, since the slopes appear to be different between food regimes.
+
+``` 
+width ~ initial volume * food_regime
+```
+
+We take an ordinary least squares (OLS) approach. How `tidymodels` work is as follows:
+
+1. Specify the functional form of the model using the [`parsnip` package](https://tidymodels.github.io/parsnip/).
+    - In this case, we use a linear regression, declaring it with `linear_reg()`.
+
+2. Set the engine with `set_engine()`. This includes the software that can be used to train the model and the estimation method.
+    - We use OLS, therefore we set the engine to `lm`.
+
+```{r lm functional form and engine}
+lm_mod <- linear_reg() %>% 
+  set_engine("lm")
+lm_mod
+```
+
+We then train the model using the function `fit()` and the specified data and equation.
+
+```{r lm train}
+lm_fit <- 
+  lm_mod %>% 
+  fit(width ~ initial_volume * food_regime, data = urchins)
+lm_fit
+```
+
+We use `tidy()` in order to retrieve the description of the parameter estimates in a tidy way:
+
+```{r lm tidy}
+tidy(lm_fit)
+```
+## Use a model to predict
+
+Suppose that, for a publication, it would be particularly interesting to make a plot of the mean body size for urchins that started the experiment with an initial volume of 20ml.
+
+```{r lm new points}
+new_points <- expand.grid(initial_volume = 20, 
+                          food_regime = c("Initial", "Low", "High"))
+new_points
+```
+We use `predict()` from tidymodels to get our predicted results, as it offers the same syntax, independently of the model used.
+
+```{r lm predict}
+mean_pred <- predict(lm_fit, new_data = new_points)
+mean_pred
+```
+
+To get the confidence intervals, whe specify `type = "conf_int` whitin `predict()`.
+
+```{r lm conf int}
+conf_int_pred <- predict(lm_fit, 
+                         new_data = new_points, 
+                         type = "conf_int")
+conf_int_pred
+```
+
+To plot our results, we first need to combine all these results and the original data into a single tibble.
+
+```{r lm predict plot}
+# Combine data
+plot_data <- 
+  new_points %>% 
+  bind_cols(mean_pred) %>% 
+  bind_cols(conf_int_pred)
+
+# and plot:
+ggplot(plot_data, aes(x = food_regime)) + 
+  geom_point(aes(y = .pred)) + 
+  geom_errorbar(aes(ymin = .pred_lower, 
+                    ymax = .pred_upper),
+                width = .2) + 
+  labs(y = "urchin size")
+```
+
+## Model with a different engine: Bayesian Analysis
 
