@@ -3,14 +3,14 @@ title: "Tidymodels intro"
 author: "Pablo Benavides-Herrera"
 date: '2020-04-29'
 output:
-  github_document:
-    toc: yes
-    dev: jpeg
   html_notebook:
     toc: yes
     toc_float: yes
     highlight: tango
     theme: spacelab
+  github_document:
+    toc: yes
+    dev: jpeg
 ---
 
 *Based on https://www.tidymodels.org/start/.*
