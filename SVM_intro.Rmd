@@ -1,0 +1,158 @@
+---
+title: "SVM intro"
+output: html_notebook
+---
+
+```{r, message=FALSE}
+library(tidyverse)
+library(pracma)
+library(expm)
+```
+
+
+Simulate the data
+
+```{r sim data}
+n <- 20
+x1 <- seq(-10,10,length.out = n)
+x2 <- seq(-10,10,length.out = n)
+X <- meshgrid(x1,x2)
+Y_original <- 2*(X$X %^% 3 - 3 * X$X > X$Y)-1 # differs in 2 observations from Matlab
+Y <- Y_original
+Y[9,11] <- -1
+Y[6,12] <- -1
+```
+
+Reshape step
+
+```{r reshape}
+x1m <- matrix(X$X,nrow = n^2, byrow = T)
+x2m <- matrix(X$Y,nrow = n^2, byrow = T)
+Xm <- cbind(x1m,x2m)
+y <- matrix(Y, nrow = n^2, byrow = T)
+Ym <- y %*% t(y)
+Ver <- cbind(Xm, y)
+```
+
+Now we produce a scatterplot of the data.
+
+```{r scatterplot}
+gg_data <- tibble(x1m = x1m,
+                  x2m = x2m,
+                  y = y)
+p1 <- ggplot(gg_data,
+       aes(x = x1m, y = x2m, color = factor(y))) + 
+  geom_point() + labs(color = "")
+p1
+```
+
+The kernel matrix
+
+```{r kernel matrix}
+K <- matrix(0,n^2,n^2)
+for (i in 1:n^2){
+  for (j in 1:n^2){
+    K[i,j] <- Xm[i,] %*% Xm[j,]
+  }
+}
+```
+
+Set variables for optimization
+
+```{r optimization variables}
+H <- K * Ym
+onev <- t(matrix(1,1,n^2))
+Aeq <- Conj(t(y))
+beq <- 0
+c <- 0.1
+lb <- matrix(0,1,n^2)
+ub <- c %*% matrix(1,1,n^2)
+```
+
+
+
+Optimal alpha values (not running)
+
+In Matlab: `quadprog(H,-onev,[],[],Aeq,beq,lb,ub)`
+```{r alpha values}
+nearH <- nearPD(H)
+nearH <- as.matrix(nearH$mat)
+opt_alpha <- quadprog(C = nearH,d = c(onev),Aeq = Aeq,beq = beq,
+                      lb = lb,ub =ub)
+# opt_alpha <- quadprog(C = H,d = c(onev),Aeq = Aeq,beq = beq,
+#                       lb = lb,ub =ub)
+```
+
+Support values and support vectors
+
+```{r}
+ind <- opt_alpha$xmin>1e-10
+alpha_sv <- opt_alpha$xmin[ind]
+x_sv <- Xm[ind,]
+y_sv <- y[ind,]
+```
+
+Calculation of w and b
+
+```{r}
+w <- colSums(tibble(x1 = alpha_sv * y_sv, x2 = alpha_sv * y_sv) %>% as.matrix() * x_sv) 
+b <- mean(1/y_sv - x_sv %*% w)
+```
+
+Prediction model
+
+```{r}
+x <- c(10,1)
+y_est <- sign(Conj(t(w)) %*% x + b)
+```
+
+The final plot
+
+```{r}
+# gg_data <- gg_data %>% 
+p1 + geom_line(aes(x = c(x1,rep(NA,length(y[,1])-length(x1))
+                         ), 
+                   y = c(mrdivide(t(-w[1] %*% x1 - b), w[2]), rep(NA, length(y[,1]) - length(x1))
+                         )
+                   )
+               )
+
+ggplot(data = tibble(x = x1,
+                     y = mrdivide(t(-w[1] %*% x1 - b),w[2])
+                     ),
+aes(x= x, y = y)) +
+  geom_line()+ coord_cartesian(ylim = c(-10,10))
+```
+
+
+
+
+
+- - - - - - - - - - - - 
+Check to see if we get the same results from matlab
+
+```{r, message=FALSE}
+# h_matlab <- read_csv("C:/Users/behep/OneDrive - ITESO/PhD/00-Tesis/Semestre 3 - IDI III/H.csv",col_names = F) %>%
+#   as.matrix()
+# k_matlab <- read_csv("C:/Users/behep/OneDrive - ITESO/PhD/00-Tesis/Semestre 3 - IDI III/K.csv",col_names = F) %>%
+#   as.matrix()
+# ym_matlab <- read_csv("C:/Users/behep/OneDrive - ITESO/PhD/00-Tesis/Semestre 3 - IDI III/Ym.csv",col_names = F) %>%
+#   as.matrix()
+# y_matlab <- read_csv("C:/Users/behep/OneDrive - ITESO/PhD/00-Tesis/Semestre 3 - IDI III/Y.csv",col_names = F) %>% 
+#   as.matrix()
+```
+
+
+```{r}
+# prueba_h <- trunc(H,digits = 0) == trunc(h_matlab,0)
+# prueba_h <- prueba %>% as_tibble()
+# write_csv(prueba, path = "prueba.csv", col_names = F)
+# 
+sum(trunc(H,digits = 8) == trunc(h_matlab,8))
+sum(trunc(K,digits = 8) == trunc(k_matlab,8))
+sum(trunc(Ym,digits = 8) == trunc(ym_matlab,8))
+# View(trunc(Y,digits = 8) == trunc(y_matlab,8))
+sum(trunc(Y,digits = 8) == trunc(y_matlab,8))
+```
+
+
