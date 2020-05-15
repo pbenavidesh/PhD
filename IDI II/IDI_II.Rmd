@@ -57,9 +57,13 @@ pick <- function(condition){
 Descriptive statistics function.
 ```{r fun stats}
 d_stats <- function(x){
-  list(mean(x,na.rm = T),sd(x,na.rm = T),min(x,na.rm = T),
-       median(x,na.rm = T),max(x,na.rm = T),length(x),
-       sum(is.na(x)))
+  list(media = mean(x,na.rm = T),
+       `desv. std` = sd(x,na.rm = T),
+       min = min(x,na.rm = T),
+       mediana = median(x,na.rm = T),
+       max = max(x,na.rm = T),
+       n = length(x),
+       NAs = sum(is.na(x)))
 }
 ```
 
@@ -86,7 +90,10 @@ datos <- datos %>%
          ) %>% factor(levels = c("Monday","Weekday",
                                  "Weekend","Holiday"))
          ) %>% 
-  as_tsibble(index = fecha)
+  as_tsibble(index = fecha) %>% 
+  rename(`temp min` = temp_min, 
+         `temp max` = temp_max,
+         `temp prom` = temp_prom)
 datos
 ```
 
@@ -126,16 +133,37 @@ datos %>%
 ```
 
 ```{r}
-descr_stats <- datos %>% 
-  as_tibble() %>% 
-  select_if(is_double) %>% 
-  sapply(d_stats)
-rownames(descr_stats) <- c('media','desv. std.','min.',
-                           'mediana','max.','n',
-                           'missing values')
-descr_stats
+# descr_stats <- datos %>% 
+#   as_tibble() %>% 
+#   select_if(is_double) %>% 
+#   sapply(d_stats)
+# 
+# descr_stats
+
+datos  %>%  
+  features_if(is_double,features =
+                         list(media = mean,
+       `desv. std` = sd,
+       min = min,
+       mediana = median,
+       max = max,
+       n = length), na.rm = T
+       ) %>% 
+  pivot_longer(everything()) %>% 
+  separate(name, into = c("var","stat"), sep = "_") %>% 
+  pivot_wider(names_from = "var",values_from = "value")
 ```
 
+```{r}
+datos %>% 
+  features(log(MWh), unitroot_nsdiffs)
+
+datos %>% 
+  features(difference(log(MWh),7), unitroot_ndiffs)
+
+datos %>% 
+  gg_tsdisplay(MWh %>% log() %>%  difference(7) %>% difference(), plot_type = "partial", lag_max = 49)
+```
 
 
 
