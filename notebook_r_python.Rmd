@@ -1,0 +1,93 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+Código en R:
+```{r}
+library(reticulate)
+
+use_virtualenv("myenv") # no lo detecta!!!
+knitr::knit_engines$set(python = reticulate::eng_python)
+# eng_python(options = )
+```
+
+Check python versions in R/Python:
+
+```{r}
+py_config()
+```
+```{python}
+import sys
+print(sys.version)
+```
+
+
+```{r}
+x <- 42
+print(x)
+```
+Editing regular r objects:
+```{r}
+x <- x + 12
+print(x)
+```
+
+Código en Python:
+```{python, echo=T}
+x = 42 * 2
+print(x)
+```
+
+El valor de `x` en **R** no es el mismo al valor de la `x` de Python.
+
+## Modificar el valor de una variable de Python
+
+```{python}
+x = x + 18
+print(x)
+```
+
+Para obtener el valor de `x` de la sesión de Python:
+
+```{r}
+py$x
+```
+
+Asignar una variable en Python, desde R:
+
+```{r}
+py$y <- 1:5
+```
+
+Para ver el valor de la variable en la sesión de Python:
+
+```{python}
+print(y)
+```
+
+Graficar en Python:
+
+```{python, echo= TRUE}
+import matplotlib.pyplot as plt
+plt.plot([0, 2, 1, 4])
+plt.show()
+```
+
+```{python packages}
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn import datasets, linear_model
+from sklearn.model_selection import train_test_split
+import statsmodels.api as sm
+```
+
+```{python}
+
+```
+
+```{r}
+ocupación <- ocupacion %>% 
+  as_tsibble(index = )
+```
+
