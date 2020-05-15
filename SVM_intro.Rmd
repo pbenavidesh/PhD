@@ -7,6 +7,7 @@ output: html_notebook
 library(tidyverse)
 library(pracma)
 library(expm)
+library(kernlab)
 ```
 
 
@@ -83,6 +84,15 @@ opt_alpha <- quadprog(C = nearH,d = c(onev),Aeq = Aeq,beq = beq,
 #                       lb = lb,ub =ub)
 ```
 
+Using the `ipop` function from the package `kernlab`:
+
+```{r alpha vals - kernlab}
+opt_alpha <- ipop(c = c(onev), H = H, A = Aeq, b = beq, l = lb,
+                  u = ub, r = 0)
+```
+
+
+
 Support values and support vectors
 
 ```{r}
@@ -148,11 +158,11 @@ Check to see if we get the same results from matlab
 # prueba_h <- prueba %>% as_tibble()
 # write_csv(prueba, path = "prueba.csv", col_names = F)
 # 
-sum(trunc(H,digits = 8) == trunc(h_matlab,8))
-sum(trunc(K,digits = 8) == trunc(k_matlab,8))
-sum(trunc(Ym,digits = 8) == trunc(ym_matlab,8))
+# sum(trunc(H,digits = 8) == trunc(h_matlab,8))
+# sum(trunc(K,digits = 8) == trunc(k_matlab,8))
+# sum(trunc(Ym,digits = 8) == trunc(ym_matlab,8))
 # View(trunc(Y,digits = 8) == trunc(y_matlab,8))
-sum(trunc(Y,digits = 8) == trunc(y_matlab,8))
+# sum(trunc(Y,digits = 8) == trunc(y_matlab,8))
 ```
 
 
