@@ -21,19 +21,21 @@ Here we load the required packages, define functions and load and wrangle the da
 
 ```{r pkgs, message=FALSE}
 library(tidyverse) # call to the tidyverse packages
+library(lubridate) # tidy date manipulation
 # library(pracma) # 
 # library(xtable)
 library(plotly) # interactive plots
+library(patchwork) # plots arrangement
 library(tsibble) # tidy time series tibbles
 library(fable) # time series tidy modeling and forecasting
+library(feasts)
 # library(cowplot)
 # library(withr) # change global options, locally
 # library(cluster) # for cluster analysis
 # library(factoextra) # cluster visualization
 ```
 
-## Functions to be used
-
+## Functions
 Defining a MAPE function to be used.
 
 ```{r fun - mape}
@@ -43,17 +45,101 @@ mape <- function(y=consumo,y_hat){
 }
 ```
 
+A function to filter data on ggplot layers.
+
+```{r fun - pick}
+pick <- function(condition){
+  function(d) d %>% filter(condition)
+}
+```
+
+
+Descriptive statistics function.
+```{r fun stats}
+d_stats <- function(x){
+  list(mean(x,na.rm = T),sd(x,na.rm = T),min(x,na.rm = T),
+       median(x,na.rm = T),max(x,na.rm = T),length(x),
+       sum(is.na(x)))
+}
+```
+
+
 ## The data
 
-The main data to be used is the daily load.
-```{r data - load}
-# Main data
-datos <- read_csv('gcroc.csv')
+The main data to be used is the daily load. We also use holidays data as to get insights on the variation.
 
+```{r data - load, message=FALSE}
+datos <- read_csv("gcroc.csv")
+festivos <- read_csv("festivos_utf8.csv")
+datos <- datos %>% 
+  left_join(festivos, by = c("fecha" = "fecha"))
+
+datos <- datos %>% 
+  mutate(fecha = dmy(fecha),
+         dia_semana = factor(dia_semana,
+                             levels = c(1:7)),
+         Day_type = case_when(
+           festivo %in% festivos$festivo ~ "Holiday",
+           wday(fecha,week_start = 1) == 1 ~ "Monday",
+           wday(fecha, week_start = 1) %in% 1:5 ~ "Weekday",
+           TRUE ~ "Weekend"
+         ) %>% factor(levels = c("Monday","Weekday",
+                                 "Weekend","Holiday"))
+         ) %>% 
+  as_tsibble(index = fecha)
+datos
 ```
 
-We also load data regarding holidays and special events.
-```{r data - holidays}
 
+
+```{r plot, fig.width=12, fig.height=10}
+g1 <- ggplot(datos,aes(x = fecha, y = MWh))
+# Time plot
+p1 <- g1 + geom_line() + 
+  ggtitle("Historic Load") 
+# Day type boxplot
+p2 <- g1 + geom_boxplot(aes(x = Day_type, color = Day_type)) + 
+  theme(legend.position = "none",
+        axis.text.x =  element_text(angle = 45,
+                                      hjust = 1)) + 
+  ggtitle("Load Across Day Types")
+# Month boxplot
+p3 <- g1 + geom_boxplot(aes(x = month(fecha, label = T, abbr = T), 
+  color = month(fecha, label = T, abbr = T)
+  )
+  ) + 
+  theme(legend.position = "none",
+        axis.text.x =  element_text(angle = 45,
+                                      hjust = 1)) + 
+  ggtitle("Load Across Months")
+# plot group 1
+pg1 <- p1 / (p2 | p3)
+
+pg1 + plot_annotation(
+  title = " Daily Electricity Load in the GCROC"
+)
+# TS Decomposition
+datos %>% 
+  model(STL(MWh)) %>% 
+  components() %>% 
+  autoplot()
 ```
+
+```{r}
+descr_stats <- datos %>% 
+  as_tibble() %>% 
+  select_if(is_double) %>% 
+  sapply(d_stats)
+rownames(descr_stats) <- c('media','desv. std.','min.',
+                           'mediana','max.','n',
+                           'missing values')
+descr_stats
+```
+
+
+
+
+
+
+
 
