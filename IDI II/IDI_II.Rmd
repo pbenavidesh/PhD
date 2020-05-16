@@ -56,15 +56,15 @@ pick <- function(condition){
 
 Descriptive statistics function.
 ```{r fun stats}
-d_stats <- function(x){
-  list(media = mean(x,na.rm = T),
-       `desv. std` = sd(x,na.rm = T),
-       min = min(x,na.rm = T),
-       mediana = median(x,na.rm = T),
-       max = max(x,na.rm = T),
-       n = length(x),
-       NAs = sum(is.na(x)))
-}
+# d_stats <- function(x){
+#   list(media = mean(x,na.rm = T),
+#        `desv. std` = sd(x,na.rm = T),
+#        min = min(x,na.rm = T),
+#        mediana = median(x,na.rm = T),
+#        max = max(x,na.rm = T),
+#        n = length(x),
+#        NAs = sum(is.na(x)))
+# }
 ```
 
 
@@ -88,7 +88,8 @@ datos <- datos %>%
            wday(fecha, week_start = 1) %in% 1:5 ~ "Weekday",
            TRUE ~ "Weekend"
          ) %>% factor(levels = c("Monday","Weekday",
-                                 "Weekend","Holiday"))
+                                 "Weekend","Holiday")),
+         Month = month(fecha, label = TRUE) %>% factor(ordered = F)
          ) %>% 
   as_tsibble(index = fecha) %>% 
   rename(`temp min` = temp_min, 
@@ -97,7 +98,9 @@ datos <- datos %>%
 datos
 ```
 
+# Time Series Analysis
 
+## Descriptive Statistics
 
 ```{r plot, fig.width=12, fig.height=10}
 g1 <- ggplot(datos,aes(x = fecha, y = MWh))
@@ -111,9 +114,8 @@ p2 <- g1 + geom_boxplot(aes(x = Day_type, color = Day_type)) +
                                       hjust = 1)) + 
   ggtitle("Load Across Day Types")
 # Month boxplot
-p3 <- g1 + geom_boxplot(aes(x = month(fecha, label = T, abbr = T), 
-  color = month(fecha, label = T, abbr = T)
-  )
+p3 <- g1 + geom_boxplot(aes(x = Month, 
+  color = Month)
   ) + 
   theme(legend.position = "none",
         axis.text.x =  element_text(angle = 45,
@@ -125,21 +127,11 @@ pg1 <- p1 / (p2 | p3)
 pg1 + plot_annotation(
   title = " Daily Electricity Load in the GCROC"
 )
-# TS Decomposition
-datos %>% 
-  model(STL(MWh)) %>% 
-  components() %>% 
-  autoplot()
 ```
 
-```{r}
-# descr_stats <- datos %>% 
-#   as_tibble() %>% 
-#   select_if(is_double) %>% 
-#   sapply(d_stats)
-# 
-# descr_stats
+We see differences across day types and across months, suggesting year seasonality.
 
+```{r stats}
 datos  %>%  
   features_if(is_double,features =
                          list(media = mean,
@@ -154,20 +146,135 @@ datos  %>%
   pivot_wider(names_from = "var",values_from = "value")
 ```
 
-```{r}
-datos %>% 
-  features(log(MWh), unitroot_nsdiffs)
+We check for the relationship between electricity load and temperature.
 
-datos %>% 
-  features(difference(log(MWh),7), unitroot_ndiffs)
+```{r MWh v. temp, fig.width=12, fig.height=10}
+p4 <- datos %>% 
+  ggplot(aes(x = `temp max`, y = MWh)) + 
+  geom_point() + ggtitle("Maximum Temperature") + 
+  xlab("(C°)") + geom_smooth(method = "lm", formula = y ~ x + I(x^2))# +
+  # facet_wrap(~ factor(year(fecha)))
 
+p5 <- datos %>% 
+  ggplot(aes(x = `temp min`, y = MWh)) + 
+  geom_point() + ggtitle("Minimum temperature") + 
+  xlab("(C°)") + theme(legend.position = "none") + geom_smooth(method = "lm", formula = y ~ x + I(x^2))# +
+  # facet_wrap(~ factor(year(fecha)))
+
+pg2 <- p4 / p5
+
+pg2 + plot_annotation(title = "Electricity Load as a Function of Temperature")
+```
+
+
+## Decomposition Analysis
+
+```{r TS Decomposition}
 datos %>% 
-  gg_tsdisplay(MWh %>% log() %>%  difference(7) %>% difference(), plot_type = "partial", lag_max = 49)
+  model(STL(log(MWh))) %>% 
+  components() %>% 
+  autoplot()
+# Components
+datos %>% 
+  model(STL(log(MWh))) %>% 
+  components()
+# STL features
+datos %>% 
+  features(MWh, feat_stl)
 ```
 
 
 
 
+## Fourier Analysis
+
+```{r manual fourier}
+datos_components_log <- datos %>% 
+  model(STL(log(MWh))) %>% 
+  components() %>% 
+  mutate(detrended = `log(MWh)` - trend)
+
+autoplot(datos_components_log, detrended)
+
+datos_acf <- datos_components_log %>% 
+  ACF(detrended, lag_max = 1850) %>% 
+  select(acf) 
+
+datos_acf <- datos_acf %>% 
+  mutate(fourier = abs(fft(datos_acf$acf)^2)
+         )
+autoplot(datos_acf,fourier)
+
+periodos <- datos_acf %>% 
+  top_n(fourier,n = 10)
+
+coef_fourier_sin <- t(sin(2 * pi / t(t(periodos$fourier)) %*% t(seq_along(datos$fecha))))
+coef_fourier_cos <- t(cos(2 * pi / t(t(periodos$fourier)) %*% t(seq_along(datos$fecha))))
+a <- tibble(coef_fourier_sin,coef_fourier_cos)
+```
+
+# TS Models
+
+## Fitting the models
+
+```{r model}
+h <- 365
+train <- datos %>% 
+  slice(1 : (n() - h))
+fit <- train %>% 
+  model(
+    `LM + dummies` = TSLM(log(MWh) ~ Day_type + Month),
+    `LM + dummies + season` = TSLM(log(MWh) ~ Day_type + Month + season()),
+    `LM + dummies + max temp` = TSLM(log(MWh) ~ Day_type + Month + `temp max` + I(`temp max`^2)),
+    `LM + dummies + season + max temp` = TSLM(log(MWh) ~ Day_type + Month + `temp max` + I(`temp max`^2) + season()),
+    `LM + ARIMA errors` = ARIMA(log(MWh) ~ Day_type + Month + `temp max` + I(`temp max`^2) + pdq(3,1,2) + PDQ(0,0,0)),
+    `LM + season + ARIMA errors` = ARIMA(log(MWh) ~ Day_type + Month + `temp max` + I(`temp max`^2) + season() + PDQ(0,0,0))
+    )#,
+    # ARIMA(log(MWh) ~ Day_type + fourier(K=)))
+report(fit %>% select(6))
+# tidy(fit)
+```
+
+## Residuals Diagnostics
+
+```{r resids}
+fit %>% 
+  select(6) %>% 
+  gg_tsresiduals()
+```
+
+## Backtesting
+
+```{r backtesting}
+test <- datos %>% 
+  slice((n()-h+1):n())
+  # new_data(train, 365) %>%
+  # mutate(Day_type = slice(datos,(n()-364):n()) %>% as_tibble() %>%  select(Day_type) %>% as_tibble() %>% c(),
+  #        Month = slice(datos,(n()-364):n()) %>% as_tibble() %>% select(Month) %>% c(),
+  #        `temp max` = slice(datos,(n()-364):n()) %>% as_tibble() %>% select(`temp max`) %>% c()
+  #        )
+
+forecast(fit, test) %>% 
+  autoplot(datos, level = NULL) + ylab("Electricity demand (MWh)") +
+  facet_wrap(~.model) + 
+  tidyquant::coord_x_date(xlim = c("")
+                          )
+```
+
+The models' performance.
+
+```{r accuracy}
+accuracy(fit, )
+```
 
 
+```{r}
+prueba <- train %>% slice(1:5)
+prueba
+prueba %>% new_data(5)
+
+datos %>% 
+  select(fecha) %>%
+  slice(n()) - 365
+```
 
