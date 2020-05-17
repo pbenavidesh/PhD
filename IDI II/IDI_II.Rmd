@@ -245,7 +245,7 @@ fit %>%
 
 ## Backtesting
 
-```{r backtesting}
+```{r backtesting, fig.width=12, fig.height=10}
 test <- datos %>% 
   slice((n()-h+1):n())
   # new_data(train, 365) %>%
@@ -253,18 +253,24 @@ test <- datos %>%
   #        Month = slice(datos,(n()-364):n()) %>% as_tibble() %>% select(Month) %>% c(),
   #        `temp max` = slice(datos,(n()-364):n()) %>% as_tibble() %>% select(`temp max`) %>% c()
   #        )
-
-forecast(fit, test) %>% 
+fcst <- forecast(fit, test)
+p6 <- fcst %>% 
   autoplot(datos, level = NULL) + ylab("Electricity demand (MWh)") +
   facet_wrap(~.model) + 
-  tidyquant::coord_x_date(xlim = c("")
-                          )
+  tidyquant::coord_x_date(xlim = c("2018-09-01","2019-09-22")
+                          ) + theme(legend.position = "none") 
+p7 <- fcst %>% 
+  filter(str_detect(.model, "ARIMA")) %>% 
+  autoplot(datos, level = NULL) + ylab("Electricity demand (MWh)") +
+  facet_wrap(~.model) + 
+  tidyquant::coord_x_date(xlim = c("2018-09-01","2019-09-22"), ylim = c(120000,220000)) + theme(legend.position = "none")
+p6 / p7
 ```
 
 The models' performance.
 
 ```{r accuracy}
-accuracy(fit, )
+accuracy(fcst, datos)
 ```
 
 
