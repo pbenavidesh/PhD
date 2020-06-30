@@ -270,7 +270,8 @@ p6 / p7
 The models' performance.
 
 ```{r accuracy}
-accuracy(fcst, datos)
+accuracy(fcst, datos) %>% 
+  arrange(MAPE)
 ```
 
 
