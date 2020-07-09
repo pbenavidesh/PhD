@@ -217,21 +217,32 @@ a <- tibble(coef_fourier_sin,coef_fourier_cos)
 
 ## Fitting the models
 
+```{r}
+train %>% 
+  features(log(MWh),unitroot_nsdiffs)
+train %>% 
+  features(log(MWh) %>% difference(7),unitroot_ndiffs)
+```
+
+
 ```{r model}
 h <- 365
 train <- datos %>% 
   slice(1 : (n() - h))
 fit <- train %>% 
   model(
-    `LM + dummies` = TSLM(log(MWh) ~ Day_type + Month),
-    `LM + dummies + season` = TSLM(log(MWh) ~ Day_type + Month + season()),
-    `LM + dummies + max temp` = TSLM(log(MWh) ~ Day_type + Month + `temp max` + I(`temp max`^2)),
-    `LM + dummies + season + max temp` = TSLM(log(MWh) ~ Day_type + Month + `temp max` + I(`temp max`^2) + season()),
-    `LM + ARIMA errors` = ARIMA(log(MWh) ~ Day_type + Month + `temp max` + I(`temp max`^2) + pdq(3,1,2) + PDQ(0,0,0)),
-    `LM + season + ARIMA errors` = ARIMA(log(MWh) ~ Day_type + Month + `temp max` + I(`temp max`^2) + season() + PDQ(0,0,0))
-    )#,
-    # ARIMA(log(MWh) ~ Day_type + fourier(K=)))
-report(fit %>% select(6))
+    # `LM + dummies` = TSLM(log(MWh) ~ Day_type + Month),
+    # `LM + dummies + season` = TSLM(log(MWh) ~ Day_type + Month + season()),
+    # `LM + dummies + max temp` = TSLM(log(MWh) ~ Day_type + Month + `temp max` + I(`temp max`^2)),
+    # `LM + dummies + season + max temp` = TSLM(log(MWh) ~ Day_type + Month + `temp max` + I(`temp max`^2) + season()),
+    # `LM + ARIMA errors` = ARIMA(log(MWh) ~ Day_type + Month + `temp max` + I(`temp max`^2) + pdq(3,1,2) + PDQ(0,0,0)),
+    # `LM + season + ARIMA errors` = ARIMA(log(MWh) ~ Day_type + Month + `temp max` + I(`temp max`^2) + season() + PDQ(0,0,0)),
+    `Harmonic reg + dummies` = ARIMA(log(MWh) ~ Day_type +
+                      fourier(period = "1 year", K = 20) + 
+                      fourier(period = "1 week", K = 2) + PDQ(0,0,0)) 
+    )
+report(fit)
+# report(fit %>% select(7))
 # tidy(fit)
 ```
 
@@ -239,7 +250,7 @@ report(fit %>% select(6))
 
 ```{r resids}
 fit %>% 
-  select(6) %>% 
+  # select(6) %>% 
   gg_tsresiduals()
 ```
 
