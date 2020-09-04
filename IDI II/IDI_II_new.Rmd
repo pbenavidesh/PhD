@@ -15,74 +15,103 @@ output:
 
 # Introduction
 
+This notebook contains 
+
+## Packages
+
+The packages necessary to run this notebook are the following.
+
+```{r pkgs, message=FALSE, warning=FALSE}
+library(tidyverse) # data cleaning, wrangling, plotting
+library(lubridate) # dates handling
+library(patchwork) # plot setup
+library(plotly)    # interactive plots
+
+# the tidyverts
+library(tsibble)
+library(feasts)
+library(fable)
+
+# modeltime
+library(tidymodels)
+library(modeltime)
+```
+
+
 # `R` Packages for modeling and forecasting
+
+We will produce forecasts using a wide variety of models, with two different `R` packages: `fable` and `modeltime`.
 
 ## `fable` and the tidyver**ts** ecosystem
 
 ## `modeltime`: and extension to the `tidymodels`
 
-# Exponential smoothing {.tabset}
+# The models
 
-## .
+Below we implement many of the models available in both packages.
 
-## `fable`
+## Exponential smoothing {.tabset .tabset-fade}
 
-## `modeltime`
+### .
 
-# {-}
+### `fable`
 
-# ARIMA {.tabset}
+### `modeltime`
 
-## .
+### {-}
 
-## `fable`
+## ARIMA {.tabset .tabset-fade}
 
-## `modeltime`
+### .
 
-# {-}
+### `fable`
 
-# Linear regression {.tabset}
+### `modeltime`
 
-## .
+### {-}
 
-## `fable`
+## Linear regression {.tabset}
 
-## `modeltime`
+### .
 
-# {-}
+### `fable`
 
-# Dynamic regression {.tabset}
+### `modeltime`
 
-## .
+### {-}
 
-## `fable`
+## Dynamic regression {.tabset}
 
-## `modeltime`
+### .
 
-# {-}
+### `fable`
 
-# Prophet {.tabset}
+### `modeltime`
 
-## .
+### {-}
 
-## `fable`
+## Prophet {.tabset}
 
-## `modeltime`
+### .
 
-# {-}
+### `fable`
 
-# FASSTER {.tabset}
+### `modeltime`
 
-## .
+### {-}
 
-## `fable`
+## FASSTER {.tabset}
+
+### .
+
+### `fable`
 
 
-## `modeltime`
+### `modeltime`
 
-# {-}
+### {-}
 
-# The proposed model
+## The proposed model
 
 
 # Comparison across models

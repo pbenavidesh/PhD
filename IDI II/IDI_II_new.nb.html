@@ -2638,6 +2638,107 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  background-color: #f8f8f8; }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ef2929; } /* Alert */
+code span.an { color: #8f5902; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #c4a000; } /* Attribute */
+code span.bn { color: #0000cf; } /* BaseN */
+code span.cf { color: #204a87; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4e9a06; } /* Char */
+code span.cn { color: #000000; } /* Constant */
+code span.co { color: #8f5902; font-style: italic; } /* Comment */
+code span.cv { color: #8f5902; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #8f5902; font-weight: bold; font-style: italic; } /* Documentation */
+code span.dt { color: #204a87; } /* DataType */
+code span.dv { color: #0000cf; } /* DecVal */
+code span.er { color: #a40000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #0000cf; } /* Float */
+code span.fu { color: #000000; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #8f5902; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #204a87; font-weight: bold; } /* Keyword */
+code span.op { color: #ce5c00; font-weight: bold; } /* Operator */
+code span.ot { color: #8f5902; } /* Other */
+code span.pp { color: #8f5902; font-style: italic; } /* Preprocessor */
+code span.sc { color: #000000; } /* SpecialChar */
+code span.ss { color: #4e9a06; } /* SpecialString */
+code span.st { color: #4e9a06; } /* String */
+code span.va { color: #000000; } /* Variable */
+code span.vs { color: #4e9a06; } /* VerbatimString */
+code span.wa { color: #8f5902; font-weight: bold; font-style: italic; } /* Warning */
+
+.sourceCode .row {
+  width: 100%;
+}
+.sourceCode {
+  overflow-x: auto;
+}
+.code-folding-btn {
+  margin-right: -30px;
+}
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
 
 
 <style type="text/css">
@@ -2899,9 +3000,34 @@ div.tocify {
 <!-- rnb-text-begin -->
 <div id="introduction" class="section level1">
 <h1><span class="header-section-number">1</span> Introduction</h1>
+<p>This notebook contains</p>
+<div id="packages" class="section level2">
+<h2><span class="header-section-number">1.1</span> Packages</h2>
+<p>The packages necessary to run this notebook are the following.</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeSh0aWR5dmVyc2UpICMgZGF0YSBjbGVhbmluZywgd3JhbmdsaW5nLCBwbG90dGluZ1xubGlicmFyeShsdWJyaWRhdGUpICMgZGF0ZXMgaGFuZGxpbmdcbmxpYnJhcnkocGF0Y2h3b3JrKSAjIHBsb3Qgc2V0dXBcbmxpYnJhcnkocGxvdGx5KSAgICAjIGludGVyYWN0aXZlIHBsb3RzXG5cbiMgdGhlIHRpZHl2ZXJ0c1xubGlicmFyeSh0c2liYmxlKVxubGlicmFyeShmZWFzdHMpXG5saWJyYXJ5KGZhYmxlKVxuXG4jIG1vZGVsdGltZVxubGlicmFyeSh0aWR5bW9kZWxzKVxubGlicmFyeShtb2RlbHRpbWUpXG5gYGAifQ== -->
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">library</span>(tidyverse) <span class="co"># data cleaning, wrangling, plotting</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="kw">library</span>(lubridate) <span class="co"># dates handling</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="kw">library</span>(patchwork) <span class="co"># plot setup</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="kw">library</span>(plotly)    <span class="co"># interactive plots</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a></span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="co"># the tidyverts</span></span>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="kw">library</span>(tsibble)</span>
+<span id="cb1-8"><a href="#cb1-8"></a><span class="kw">library</span>(feasts)</span>
+<span id="cb1-9"><a href="#cb1-9"></a><span class="kw">library</span>(fable)</span>
+<span id="cb1-10"><a href="#cb1-10"></a></span>
+<span id="cb1-11"><a href="#cb1-11"></a><span class="co"># modeltime</span></span>
+<span id="cb1-12"><a href="#cb1-12"></a><span class="kw">library</span>(tidymodels)</span>
+<span id="cb1-13"><a href="#cb1-13"></a><span class="kw">library</span>(modeltime)</span></code></pre></div>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
 </div>
 <div id="r-packages-for-modeling-and-forecasting" class="section level1">
 <h1><span class="header-section-number">2</span> <code>R</code> Packages for modeling and forecasting</h1>
+<p>We will produce forecasts using a wide variety of models, with two different <code>R</code> packages: <code>fable</code> and <code>modeltime</code>.</p>
 <div id="fable-and-the-tidyverts-ecosystem" class="section level2">
 <h2><span class="header-section-number">2.1</span> <code>fable</code> and the tidyver<strong>ts</strong> ecosystem</h2>
 </div>
@@ -2909,120 +3035,124 @@ div.tocify {
 <h2><span class="header-section-number">2.2</span> <code>modeltime</code>: and extension to the <code>tidymodels</code></h2>
 </div>
 </div>
-<div id="exponential-smoothing" class="section level1 tabset">
-<h1><span class="header-section-number">3</span> Exponential smoothing</h1>
-<div id="section" class="section level2">
-<h2><span class="header-section-number">3.1</span> .</h2>
+<div id="the-models" class="section level1">
+<h1><span class="header-section-number">3</span> The models</h1>
+<p>Below we implement many of the models available in both packages.</p>
+<div id="exponential-smoothing" class="section level2 tabset tabset-fade">
+<h2><span class="header-section-number">3.1</span> Exponential smoothing</h2>
+<div id="section" class="section level3">
+<h3><span class="header-section-number">3.1.1</span> .</h3>
 </div>
-<div id="fable" class="section level2">
-<h2><span class="header-section-number">3.2</span> <code>fable</code></h2>
+<div id="fable" class="section level3">
+<h3><span class="header-section-number">3.1.2</span> <code>fable</code></h3>
 </div>
-<div id="modeltime" class="section level2">
-<h2><span class="header-section-number">3.3</span> <code>modeltime</code></h2>
+<div id="modeltime" class="section level3">
+<h3><span class="header-section-number">3.1.3</span> <code>modeltime</code></h3>
 </div>
-</div>
-<div id="section-1" class="section level1 unnumbered">
-<h1></h1>
-</div>
-<div id="arima" class="section level1 tabset">
-<h1><span class="header-section-number">4</span> ARIMA</h1>
-<div id="section-2" class="section level2">
-<h2><span class="header-section-number">4.1</span> .</h2>
-</div>
-<div id="fable-1" class="section level2">
-<h2><span class="header-section-number">4.2</span> <code>fable</code></h2>
-</div>
-<div id="modeltime-1" class="section level2">
-<h2><span class="header-section-number">4.3</span> <code>modeltime</code></h2>
+<div id="section-1" class="section level3 unnumbered">
+<h3></h3>
 </div>
 </div>
-<div id="section-3" class="section level1 unnumbered">
-<h1></h1>
+<div id="arima" class="section level2 tabset tabset-fade">
+<h2><span class="header-section-number">3.2</span> ARIMA</h2>
+<div id="section-2" class="section level3">
+<h3><span class="header-section-number">3.2.1</span> .</h3>
 </div>
-<div id="linear-regression" class="section level1 tabset">
-<h1><span class="header-section-number">5</span> Linear regression</h1>
-<div id="section-4" class="section level2">
-<h2><span class="header-section-number">5.1</span> .</h2>
+<div id="fable-1" class="section level3">
+<h3><span class="header-section-number">3.2.2</span> <code>fable</code></h3>
 </div>
-<div id="fable-2" class="section level2">
-<h2><span class="header-section-number">5.2</span> <code>fable</code></h2>
+<div id="modeltime-1" class="section level3">
+<h3><span class="header-section-number">3.2.3</span> <code>modeltime</code></h3>
 </div>
-<div id="modeltime-2" class="section level2">
-<h2><span class="header-section-number">5.3</span> <code>modeltime</code></h2>
-</div>
-</div>
-<div id="section-5" class="section level1 unnumbered">
-<h1></h1>
-</div>
-<div id="dynamic-regression" class="section level1 tabset">
-<h1><span class="header-section-number">6</span> Dynamic regression</h1>
-<div id="section-6" class="section level2">
-<h2><span class="header-section-number">6.1</span> .</h2>
-</div>
-<div id="fable-3" class="section level2">
-<h2><span class="header-section-number">6.2</span> <code>fable</code></h2>
-</div>
-<div id="modeltime-3" class="section level2">
-<h2><span class="header-section-number">6.3</span> <code>modeltime</code></h2>
+<div id="section-3" class="section level3 unnumbered">
+<h3></h3>
 </div>
 </div>
-<div id="section-7" class="section level1 unnumbered">
-<h1></h1>
+<div id="linear-regression" class="section level2 tabset">
+<h2><span class="header-section-number">3.3</span> Linear regression</h2>
+<div id="section-4" class="section level3">
+<h3><span class="header-section-number">3.3.1</span> .</h3>
 </div>
-<div id="prophet" class="section level1 tabset">
-<h1><span class="header-section-number">7</span> Prophet</h1>
-<div id="section-8" class="section level2">
-<h2><span class="header-section-number">7.1</span> .</h2>
+<div id="fable-2" class="section level3">
+<h3><span class="header-section-number">3.3.2</span> <code>fable</code></h3>
 </div>
-<div id="fable-4" class="section level2">
-<h2><span class="header-section-number">7.2</span> <code>fable</code></h2>
+<div id="modeltime-2" class="section level3">
+<h3><span class="header-section-number">3.3.3</span> <code>modeltime</code></h3>
 </div>
-<div id="modeltime-4" class="section level2">
-<h2><span class="header-section-number">7.3</span> <code>modeltime</code></h2>
-</div>
-</div>
-<div id="section-9" class="section level1 unnumbered">
-<h1></h1>
-</div>
-<div id="fasster" class="section level1 tabset">
-<h1><span class="header-section-number">8</span> FASSTER</h1>
-<div id="section-10" class="section level2">
-<h2><span class="header-section-number">8.1</span> .</h2>
-</div>
-<div id="fable-5" class="section level2">
-<h2><span class="header-section-number">8.2</span> <code>fable</code></h2>
-</div>
-<div id="modeltime-5" class="section level2">
-<h2><span class="header-section-number">8.3</span> <code>modeltime</code></h2>
+<div id="section-5" class="section level3 unnumbered">
+<h3></h3>
 </div>
 </div>
-<div id="section-11" class="section level1 unnumbered">
-<h1></h1>
+<div id="dynamic-regression" class="section level2 tabset">
+<h2><span class="header-section-number">3.4</span> Dynamic regression</h2>
+<div id="section-6" class="section level3">
+<h3><span class="header-section-number">3.4.1</span> .</h3>
 </div>
-<div id="the-proposed-model" class="section level1">
-<h1><span class="header-section-number">9</span> The proposed model</h1>
+<div id="fable-3" class="section level3">
+<h3><span class="header-section-number">3.4.2</span> <code>fable</code></h3>
+</div>
+<div id="modeltime-3" class="section level3">
+<h3><span class="header-section-number">3.4.3</span> <code>modeltime</code></h3>
+</div>
+<div id="section-7" class="section level3 unnumbered">
+<h3></h3>
+</div>
+</div>
+<div id="prophet" class="section level2 tabset">
+<h2><span class="header-section-number">3.5</span> Prophet</h2>
+<div id="section-8" class="section level3">
+<h3><span class="header-section-number">3.5.1</span> .</h3>
+</div>
+<div id="fable-4" class="section level3">
+<h3><span class="header-section-number">3.5.2</span> <code>fable</code></h3>
+</div>
+<div id="modeltime-4" class="section level3">
+<h3><span class="header-section-number">3.5.3</span> <code>modeltime</code></h3>
+</div>
+<div id="section-9" class="section level3 unnumbered">
+<h3></h3>
+</div>
+</div>
+<div id="fasster" class="section level2 tabset">
+<h2><span class="header-section-number">3.6</span> FASSTER</h2>
+<div id="section-10" class="section level3">
+<h3><span class="header-section-number">3.6.1</span> .</h3>
+</div>
+<div id="fable-5" class="section level3">
+<h3><span class="header-section-number">3.6.2</span> <code>fable</code></h3>
+</div>
+<div id="modeltime-5" class="section level3">
+<h3><span class="header-section-number">3.6.3</span> <code>modeltime</code></h3>
+</div>
+<div id="section-11" class="section level3 unnumbered">
+<h3></h3>
+</div>
+</div>
+<div id="the-proposed-model" class="section level2">
+<h2><span class="header-section-number">3.7</span> The proposed model</h2>
+</div>
 </div>
 <div id="comparison-across-models" class="section level1">
-<h1><span class="header-section-number">10</span> Comparison across models</h1>
+<h1><span class="header-section-number">4</span> Comparison across models</h1>
 <div id="training-adjustment" class="section level2">
-<h2><span class="header-section-number">10.1</span> Training adjustment</h2>
+<h2><span class="header-section-number">4.1</span> Training adjustment</h2>
 </div>
 <div id="forecasting-adjustment" class="section level2">
-<h2><span class="header-section-number">10.2</span> Forecasting adjustment</h2>
+<h2><span class="header-section-number">4.2</span> Forecasting adjustment</h2>
 </div>
 <div id="cross-validation" class="section level2">
-<h2><span class="header-section-number">10.3</span> Cross-validation</h2>
+<h2><span class="header-section-number">4.3</span> Cross-validation</h2>
 </div>
 <div id="forecasts" class="section level2">
-<h2><span class="header-section-number">10.4</span> Forecasts</h2>
+<h2><span class="header-section-number">4.4</span> Forecasts</h2>
 </div>
 </div>
 <div id="conclusions" class="section level1">
-<h1><span class="header-section-number">11</span> Conclusions</h1>
+<h1><span class="header-section-number">5</span> Conclusions</h1>
 <!-- rnb-text-end -->
 </div>
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIkZvcmVjYXN0aW5nIGRhaWx5IGVsZWN0cmljaXR5IGxvYWQgdXNpbmcgYGZhYmxlYCBhbmQgYG1vZGVsdGltZWAiDQpzdWJ0aXRsZTogIklESS1JSS4gUGhEIGluIEVuZ2luZWVyaW5nIFNjaWVuY2VzIg0KZGF0ZTogMjAyMC0wOC0yMA0KYXV0aG9yOiAiUGFibG8gQmVuYXZpZGVzLUhlcnJlcmEiDQpvdXRwdXQ6IA0KICBodG1sX25vdGVib29rOg0KICAgIHRvYzogVFJVRQ0KICAgIHRvY19mbG9hdDogVFJVRQ0KICAgIHRoZW1lOiBqb3VybmFsDQogICAgaGlnaGxpZ2g6IHRhbmdvDQogICAgbnVtYmVyX3NlY3Rpb25zOiBUUlVFDQotLS0NCg0KDQojIEludHJvZHVjdGlvbg0KDQojIGBSYCBQYWNrYWdlcyBmb3IgbW9kZWxpbmcgYW5kIGZvcmVjYXN0aW5nDQoNCiMjIGBmYWJsZWAgYW5kIHRoZSB0aWR5dmVyKip0cyoqIGVjb3N5c3RlbQ0KDQojIyBgbW9kZWx0aW1lYDogYW5kIGV4dGVuc2lvbiB0byB0aGUgYHRpZHltb2RlbHNgDQoNCiMgRXhwb25lbnRpYWwgc21vb3RoaW5nIHsudGFic2V0fQ0KDQojIyAuDQoNCiMjIGBmYWJsZWANCg0KIyMgYG1vZGVsdGltZWANCg0KIyB7LX0NCg0KIyBBUklNQSB7LnRhYnNldH0NCg0KIyMgLg0KDQojIyBgZmFibGVgDQoNCiMjIGBtb2RlbHRpbWVgDQoNCiMgey19DQoNCiMgTGluZWFyIHJlZ3Jlc3Npb24gey50YWJzZXR9DQoNCiMjIC4NCg0KIyMgYGZhYmxlYA0KDQojIyBgbW9kZWx0aW1lYA0KDQojIHstfQ0KDQojIER5bmFtaWMgcmVncmVzc2lvbiB7LnRhYnNldH0NCg0KIyMgLg0KDQojIyBgZmFibGVgDQoNCiMjIGBtb2RlbHRpbWVgDQoNCiMgey19DQoNCiMgUHJvcGhldCB7LnRhYnNldH0NCg0KIyMgLg0KDQojIyBgZmFibGVgDQoNCiMjIGBtb2RlbHRpbWVgDQoNCiMgey19DQoNCiMgRkFTU1RFUiB7LnRhYnNldH0NCg0KIyMgLg0KDQojIyBgZmFibGVgDQoNCg0KIyMgYG1vZGVsdGltZWANCg0KIyB7LX0NCg0KIyBUaGUgcHJvcG9zZWQgbW9kZWwNCg0KDQojIENvbXBhcmlzb24gYWNyb3NzIG1vZGVscw0KDQojIyBUcmFpbmluZyBhZGp1c3RtZW50DQoNCiMjIEZvcmVjYXN0aW5nIGFkanVzdG1lbnQNCg0KIyMgQ3Jvc3MtdmFsaWRhdGlvbg0KDQojIyBGb3JlY2FzdHMNCg0KDQojIENvbmNsdXNpb25zDQo=</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIkZvcmVjYXN0aW5nIGRhaWx5IGVsZWN0cmljaXR5IGxvYWQgdXNpbmcgYGZhYmxlYCBhbmQgYG1vZGVsdGltZWAiDQpzdWJ0aXRsZTogIklESS1JSS4gUGhEIGluIEVuZ2luZWVyaW5nIFNjaWVuY2VzIg0KZGF0ZTogMjAyMC0wOC0yMA0KYXV0aG9yOiAiUGFibG8gQmVuYXZpZGVzLUhlcnJlcmEiDQpvdXRwdXQ6IA0KICBodG1sX25vdGVib29rOg0KICAgIHRvYzogVFJVRQ0KICAgIHRvY19mbG9hdDogVFJVRQ0KICAgIHRoZW1lOiBqb3VybmFsDQogICAgaGlnaGxpZ2g6IHRhbmdvDQogICAgbnVtYmVyX3NlY3Rpb25zOiBUUlVFDQotLS0NCg0KDQojIEludHJvZHVjdGlvbg0KDQpUaGlzIG5vdGVib29rIGNvbnRhaW5zIA0KDQojIyBQYWNrYWdlcw0KDQpUaGUgcGFja2FnZXMgbmVjZXNzYXJ5IHRvIHJ1biB0aGlzIG5vdGVib29rIGFyZSB0aGUgZm9sbG93aW5nLg0KDQpgYGB7ciBwa2dzLCBtZXNzYWdlPUZBTFNFLCB3YXJuaW5nPUZBTFNFfQ0KbGlicmFyeSh0aWR5dmVyc2UpICMgZGF0YSBjbGVhbmluZywgd3JhbmdsaW5nLCBwbG90dGluZw0KbGlicmFyeShsdWJyaWRhdGUpICMgZGF0ZXMgaGFuZGxpbmcNCmxpYnJhcnkocGF0Y2h3b3JrKSAjIHBsb3Qgc2V0dXANCmxpYnJhcnkocGxvdGx5KSAgICAjIGludGVyYWN0aXZlIHBsb3RzDQoNCiMgdGhlIHRpZHl2ZXJ0cw0KbGlicmFyeSh0c2liYmxlKQ0KbGlicmFyeShmZWFzdHMpDQpsaWJyYXJ5KGZhYmxlKQ0KDQojIG1vZGVsdGltZQ0KbGlicmFyeSh0aWR5bW9kZWxzKQ0KbGlicmFyeShtb2RlbHRpbWUpDQpgYGANCg0KDQojIGBSYCBQYWNrYWdlcyBmb3IgbW9kZWxpbmcgYW5kIGZvcmVjYXN0aW5nDQoNCldlIHdpbGwgcHJvZHVjZSBmb3JlY2FzdHMgdXNpbmcgYSB3aWRlIHZhcmlldHkgb2YgbW9kZWxzLCB3aXRoIHR3byBkaWZmZXJlbnQgYFJgIHBhY2thZ2VzOiBgZmFibGVgIGFuZCBgbW9kZWx0aW1lYC4NCg0KIyMgYGZhYmxlYCBhbmQgdGhlIHRpZHl2ZXIqKnRzKiogZWNvc3lzdGVtDQoNCiMjIGBtb2RlbHRpbWVgOiBhbmQgZXh0ZW5zaW9uIHRvIHRoZSBgdGlkeW1vZGVsc2ANCg0KIyBUaGUgbW9kZWxzDQoNCkJlbG93IHdlIGltcGxlbWVudCBtYW55IG9mIHRoZSBtb2RlbHMgYXZhaWxhYmxlIGluIGJvdGggcGFja2FnZXMuDQoNCiMjIEV4cG9uZW50aWFsIHNtb290aGluZyB7LnRhYnNldCAudGFic2V0LWZhZGV9DQoNCiMjIyAuDQoNCiMjIyBgZmFibGVgDQoNCiMjIyBgbW9kZWx0aW1lYA0KDQojIyMgey19DQoNCiMjIEFSSU1BIHsudGFic2V0IC50YWJzZXQtZmFkZX0NCg0KIyMjIC4NCg0KIyMjIGBmYWJsZWANCg0KIyMjIGBtb2RlbHRpbWVgDQoNCiMjIyB7LX0NCg0KIyMgTGluZWFyIHJlZ3Jlc3Npb24gey50YWJzZXR9DQoNCiMjIyAuDQoNCiMjIyBgZmFibGVgDQoNCiMjIyBgbW9kZWx0aW1lYA0KDQojIyMgey19DQoNCiMjIER5bmFtaWMgcmVncmVzc2lvbiB7LnRhYnNldH0NCg0KIyMjIC4NCg0KIyMjIGBmYWJsZWANCg0KIyMjIGBtb2RlbHRpbWVgDQoNCiMjIyB7LX0NCg0KIyMgUHJvcGhldCB7LnRhYnNldH0NCg0KIyMjIC4NCg0KIyMjIGBmYWJsZWANCg0KIyMjIGBtb2RlbHRpbWVgDQoNCiMjIyB7LX0NCg0KIyMgRkFTU1RFUiB7LnRhYnNldH0NCg0KIyMjIC4NCg0KIyMjIGBmYWJsZWANCg0KDQojIyMgYG1vZGVsdGltZWANCg0KIyMjIHstfQ0KDQojIyBUaGUgcHJvcG9zZWQgbW9kZWwNCg0KDQojIENvbXBhcmlzb24gYWNyb3NzIG1vZGVscw0KDQojIyBUcmFpbmluZyBhZGp1c3RtZW50DQoNCiMjIEZvcmVjYXN0aW5nIGFkanVzdG1lbnQNCg0KIyMgQ3Jvc3MtdmFsaWRhdGlvbg0KDQojIyBGb3JlY2FzdHMNCg0KDQojIENvbmNsdXNpb25zDQo=</div>
 
 
 </div>
