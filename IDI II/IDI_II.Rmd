@@ -164,6 +164,8 @@ p5 <- datos %>%
 pg2 <- p4 / p5
 
 pg2 + plot_annotation(title = "Electricity Load as a Function of Temperature")
+
+p4
 ```
 
 

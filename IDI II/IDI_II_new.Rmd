@@ -1,0 +1,99 @@
+---
+title: "Forecasting daily electricity load using `fable` and `modeltime`"
+subtitle: "IDI-II. PhD in Engineering Sciences"
+date: 2020-08-20
+author: "Pablo Benavides-Herrera"
+output: 
+  html_notebook:
+    toc: TRUE
+    toc_float: TRUE
+    theme: journal
+    highligh: tango
+    number_sections: TRUE
+---
+
+
+# Introduction
+
+# `R` Packages for modeling and forecasting
+
+## `fable` and the tidyver**ts** ecosystem
+
+## `modeltime`: and extension to the `tidymodels`
+
+# Exponential smoothing {.tabset}
+
+## .
+
+## `fable`
+
+## `modeltime`
+
+# {-}
+
+# ARIMA {.tabset}
+
+## .
+
+## `fable`
+
+## `modeltime`
+
+# {-}
+
+# Linear regression {.tabset}
+
+## .
+
+## `fable`
+
+## `modeltime`
+
+# {-}
+
+# Dynamic regression {.tabset}
+
+## .
+
+## `fable`
+
+## `modeltime`
+
+# {-}
+
+# Prophet {.tabset}
+
+## .
+
+## `fable`
+
+## `modeltime`
+
+# {-}
+
+# FASSTER {.tabset}
+
+## .
+
+## `fable`
+
+
+## `modeltime`
+
+# {-}
+
+# The proposed model
+
+
+# Comparison across models
+
+## Training adjustment
+
+## Forecasting adjustment
+
+## Cross-validation
+
+## Forecasts
+
+
+# Conclusions
