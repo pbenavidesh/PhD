@@ -200,6 +200,18 @@ We will produce forecasts using a wide variety of models, with two different `R`
 
 Below we implement many of the models available in both packages.
 
+
+## Time series decomposition {.tabset .tabset-fade}
+
+### .
+
+### `fable`
+
+
+
+### `modeltime`
+
+### {-}
 ## Exponential smoothing {.tabset .tabset-fade}
 
 ### .
