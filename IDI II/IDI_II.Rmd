@@ -23,12 +23,13 @@ Here we load the required packages, define functions and load and wrangle the da
 library(tidyverse) # call to the tidyverse packages
 library(lubridate) # tidy date manipulation
 # library(pracma) # 
-# library(xtable)
+library(xtable)
 library(plotly) # interactive plots
 library(patchwork) # plots arrangement
 library(tsibble) # tidy time series tibbles
 library(fable) # time series tidy modeling and forecasting
 library(feasts)
+library(fable.prophet)
 # library(cowplot)
 # library(withr) # change global options, locally
 # library(cluster) # for cluster analysis
@@ -97,6 +98,17 @@ datos <- datos %>%
          `temp prom` = temp_prom)
 datos
 ```
+
+```{r, include=FALSE}
+# To print in LaTeX form
+datos %>% 
+  as_tibble() %>%  
+  mutate(fecha = as.character(fecha)) %>%  slice_head(n = 10) %>% 
+  xtable() %>% print()
+```
+
+
+
 
 # Time Series Analysis
 
@@ -219,14 +231,6 @@ a <- tibble(coef_fourier_sin,coef_fourier_cos)
 
 ## Fitting the models
 
-```{r}
-train %>% 
-  features(log(MWh),unitroot_nsdiffs)
-train %>% 
-  features(log(MWh) %>% difference(7),unitroot_ndiffs)
-```
-
-
 ```{r model}
 h <- 365
 train <- datos %>% 
@@ -247,6 +251,48 @@ report(fit)
 # report(fit %>% select(7))
 # tidy(fit)
 ```
+
+```{r}
+train %>% 
+  features(log(MWh),unitroot_nsdiffs)
+train %>% 
+  features(log(MWh) %>% difference(7),unitroot_ndiffs)
+```
+```{r}
+h <- 365
+train <- datos %>% 
+  slice(1 : (n() - h))
+```
+
+```{r}
+lambda <- train %>% 
+  features(MWh, features = guerrero) %>% 
+  pull(lambda_guerrero)
+lambda
+```
+
+
+Implementing different models:
+
+```{r}
+fit2 <- train %>% 
+  model(
+    ETS = ETS(box_cox(MWh, lambda)),
+    ARIMA = ARIMA(box_cox(MWh, lambda)),
+    Harmonic = ARIMA(box_cox(MWh, lambda) ~ fourier(period = "1 year", K = 20) + 
+                       fourier(period = "1 week", K = 2) + 
+                       PDQ(0,0,0)),
+    # `LM + ARIMA errors` = ARIMA(box_cox(MWh, lambda) ~ Day_type + Month + `temp max` + I(`temp max`^2) + pdq(3,1,2) + PDQ(0,0,0)),
+    # # `LM + season + ARIMA errors` = ARIMA(log(MWh) ~ Day_type + Month + `temp max` + I(`temp max`^2) + season() + PDQ(0,0,0)),
+    # `Harmonic reg + dummies` = ARIMA(box_cox(MWh, lambda) ~ Day_type +
+    #                   fourier(period = "1 year", K = 20) + 
+    #                   fourier(period = "1 week", K = 2) + PDQ(0,0,0)),
+    Prophet = prophet(box_cox(MWh))
+    )
+report(fit2)
+```
+
+
 
 ## Residuals Diagnostics
 

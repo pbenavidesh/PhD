@@ -12,6 +12,10 @@ output:
     number_sections: TRUE
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(fig.width=12, fig.height=10)
+```
+
 
 # Introduction
 
@@ -37,6 +41,150 @@ library(tidymodels)
 library(modeltime)
 ```
 
+## The data
+
+The main data to be used is the daily load from the Western Regional Control Management of CENACE. We also use holidays data as to get insights on the variation.
+
+```{r data - load, message=FALSE}
+datos <- read_csv("gcroc.csv")
+festivos <- read_csv("festivos_utf8.csv")
+datos <- datos %>% 
+  left_join(festivos, by = c("fecha" = "fecha"))
+
+datos <- datos %>% 
+  mutate(fecha = dmy(fecha),
+         dia_semana = factor(dia_semana,
+                             levels = c(1:7)),
+         Day_type = case_when(
+           festivo %in% festivos$festivo ~ "Holiday",
+           wday(fecha,week_start = 1) == 1 ~ "Monday",
+           wday(fecha, week_start = 1) %in% 1:5 ~ "Weekday",
+           TRUE ~ "Weekend"
+         ) %>% factor(levels = c("Monday","Weekday",
+                                 "Weekend","Holiday")),
+         Month = month(fecha, label = TRUE) %>% factor(ordered = F)
+         ) %>% 
+  as_tsibble(index = fecha) %>% 
+  rename(`temp min` = temp_min, 
+         `temp max` = temp_max,
+         `temp prom` = temp_prom)
+datos
+```
+
+```{r, include=FALSE}
+# To print in LaTeX form
+datos %>% 
+  as_tibble() %>%  
+  mutate(fecha = as.character(fecha)) %>%  slice_head(n = 10) %>% 
+  xtable() %>% print()
+```
+
+# Exploratory Data Analysis (EDA)
+
+We begin by plotting the data in a time plot, as well as in boxplots, first by day type, and then by month, as to check if we can find differences across time.
+
+
+```{r time-box plots}
+g1 <- ggplot(datos,aes(x = fecha, y = MWh)) + xlab("")
+# Time plot
+p1 <- g1 + geom_line(color = "blue") + 
+  ggtitle("Historic Load") 
+# Day type boxplot
+p2 <- g1 + geom_boxplot(aes(x = Day_type, fill = Day_type)) + 
+  theme(legend.position = "none",
+        axis.text.x =  element_text(angle = 45,
+                                      hjust = 1)) + 
+  ggtitle("Load Across Day Types")
+# Month boxplot
+p3 <- g1 + geom_boxplot(aes(x = Month, 
+  fill = Month)
+  ) + 
+  theme(legend.position = "none",
+        axis.text.x =  element_text(angle = 45,
+                                      hjust = 1)) + 
+  ggtitle("Load Across Months")
+# plot group 1
+pg1 <- p1 / (p2 | p3)
+
+pg1 + plot_annotation(
+  title = " Daily Electricity Load in the GCROC"
+)
+```
+
+As can be seen from the time plot, the data exhibits a long-term upward trend, as well as indications of seasonality.
+
+By inspecting both boxplots, we see that differences arise both across day types (whether it is a Monday, weekday, weekend or holidays), and across months, further suggesting two types of seasonality: weekly and yearly.
+
+```{r stats}
+datos  %>%  
+  features_if(is_double,features =
+                         list(
+       Mean = (~ mean(., na.rm = TRUE)),
+       `Std. Dev.` = (~ sd(., na.rm = TRUE)),
+       Min = (~ min(., na.rm = TRUE)),
+       Median = (~ median(., na.rm = TRUE)),
+       Max = (~ max(., na.rm = TRUE)),
+       N = length)
+       ) %>% 
+  pivot_longer(everything()) %>% 
+  separate(name, into = c("var","stat"), sep = "_") %>% 
+  pivot_wider(names_from = "var",values_from = "value")
+```
+
+We check for the relationship between electricity load and temperature across day types.
+
+```{r MWh v. temp, fig.width=12, fig.height=10}
+p4 <- datos %>% 
+  filter(year(fecha)>2001) %>% 
+  ggplot(aes(x = `temp max`, y = MWh)) + 
+  geom_point(aes(color = Day_type)) + 
+  ggtitle("Daily electricity load as a function of maximum temperature") + 
+  xlab("(C°)") + 
+  geom_smooth(method = "lm", formula = y ~ x + I(x^2)) +
+  labs(color = "") +
+  theme(legend.position = "top")
+  
+
+p4
+```
+
+The data show a u-shape trend. Whenever the maximum temperature is low, the energy demand seems to be higher. The same happens and even in a greater degree when the maximum temperature is high.
+
+From the image above we can see that holidays and weekends seem to be on the lower part of the plot, while mondays and weekdays tend to cluster higher. The separation between them is not as clear, and it could be because of the upward trend over the years.
+
+We could plot each year separately to get a better look at it, or remove the trend from the series.
+
+Plotting each year separately yields the plot below.
+
+```{r}
+p4 + facet_wrap(~ factor(year(fecha))) 
+```
+
+Removing the trend using an STL decomposition:
+
+```{r}
+p5 <- datos %>%
+  mutate(detrend = MWh - datos %>% 
+           model(STL(MWh)) %>% 
+           components() %>% 
+           pull(trend)
+           ) %>% 
+  ggplot(aes(x = `temp max`, y = detrend)) + 
+  geom_point(aes(color = Day_type)) + 
+  ggtitle("Detrended daily electricity load as a function of maximum temperature") + 
+  xlab("(C°)") +
+  labs(color = "") +
+  theme(legend.position = "top")
+
+p5 + 
+  geom_smooth(method = "lm", formula = y ~ x + I(x^2))
+p5 + 
+  geom_smooth(method = "lm", formula = y ~ x + I(x^2),
+              aes(color = Day_type)) 
+```
+
+In both cases, we can now see clearer clusters forming, supporting what we saw on the boxplots. Also, adding a global trend line or a trend line for each day type shows a similar pattern.
+
 
 # `R` Packages for modeling and forecasting
 
@@ -44,7 +192,9 @@ We will produce forecasts using a wide variety of models, with two different `R`
 
 ## `fable` and the tidyver**ts** ecosystem
 
+
 ## `modeltime`: and extension to the `tidymodels`
+
 
 # The models
 
@@ -55,6 +205,8 @@ Below we implement many of the models available in both packages.
 ### .
 
 ### `fable`
+
+
 
 ### `modeltime`
 
