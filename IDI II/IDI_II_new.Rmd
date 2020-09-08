@@ -35,6 +35,8 @@ library(plotly)    # interactive plots
 library(tsibble)
 library(feasts)
 library(fable)
+library(fable.prophet)
+library(fasster)
 
 # modeltime
 library(tidymodels)
@@ -192,6 +194,68 @@ We will produce forecasts using a wide variety of models, with two different `R`
 
 ## `fable` and the tidyver**ts** ecosystem
 
+A generalized function to obtain forecasts via `fable` is shown below. One must specify the model with as much customization as needed.
+
+```{r fable-function}
+fable_workflow <- function(data = datos, model, lag = 10, dof = 0, horizon = 30, year = 2018){
+  # Splitting data into train and test sets
+  train <- data %>% 
+    slice_head(n = (nrow(data) - horizon))
+
+  test <- datos %>% 
+    slice_tail(n = horizon)
+
+  # fitting the model
+  fable <- train %>%
+    model(model)
+  
+  print("The fitted model:")
+  fable %>% 
+    report()
+  
+  print("Training accuracy:")
+  fable %>% 
+    fabletools::accuracy() %>% 
+    print()
+  
+  # Residual diagnostics:
+  resids <- fable %>% 
+    gg_tsresiduals() +
+    ggtitle("Residual diagnostics")
+  print(resids)
+  
+  print("Portmanteau tests for autocorrelation")
+  fable %>% 
+    augment() %>% 
+    features(.resid, ljung_box, lag = lag, dof = dof) %>% 
+    print()
+  
+  
+  print("The forecast:")
+  fable_fcst <- fable %>% 
+    forecast(h = horizon)
+  print(fable_fcst)
+  
+  # Plotting the forecast:
+  fcst <- 
+    # Historic data vs. forecast
+    fable_fcst %>% 
+    autoplot(data) / 
+    # recent history vs. forecast
+    fable_fcst %>% 
+    autoplot(data %>% filter(year(fecha)>year)) +
+    plot_annotation(title = "The Forecast")
+  print(fcst)
+  
+  print("Forecast accuracy:")
+  fable_fcst %>% 
+    fabletools::accuracy(test) %>% 
+    print()
+  
+}
+```
+
+
 
 ## `modeltime`: and extension to the `tidymodels`
 
@@ -200,14 +264,56 @@ We will produce forecasts using a wide variety of models, with two different `R`
 
 Below we implement many of the models available in both packages.
 
-
 ## Time series decomposition {.tabset .tabset-fade}
 
 ### .
 
+There are many decomposition methods.
+
 ### `fable`
 
+#### Classical decomposition
 
+```{r}
+datos %>% 
+  model(classical_decomposition(MWh, type = "multiplicative")) %>% 
+  components() %>% 
+  autoplot() + xlab("year") +
+  ggtitle("Classical additive decomposition")
+```
+#### STL decomposition
+
+An STL decomposition is obtained with the following code.
+
+```{r}
+datos %>% 
+  model(STL(MWh)) %>% 
+  components() %>% 
+  autoplot() + xlab("year") +
+  ggtitle("STL decomposition")
+```
+
+The multiple STL decomposition can be customized. In this case, we want to make the trend smoother.
+
+
+```{r}
+datos %>% 
+  model(STL(MWh ~ trend(window = 183))) %>% 
+  components() %>% 
+  autoplot() + xlab("year") +
+  ggtitle("STL decomposition")
+```
+
+We could set the seasonality to be fixed specifying `season(window = 'periodic')`.
+
+```{r}
+datos %>% 
+  model(STL(MWh ~ trend(window = 183) + 
+              season(window = 'periodic'))) %>% 
+  components() %>% 
+  autoplot() + xlab("year") +
+  ggtitle("STL decomposition")
+```
 
 ### `modeltime`
 
@@ -217,6 +323,12 @@ Below we implement many of the models available in both packages.
 ### .
 
 ### `fable`
+
+```{r fable-ETS}
+fable_workflow(model = ETS(MWh, opt_crit = "mse"),
+               horizon = 30,
+               year = 2018)
+```
 
 
 
@@ -230,6 +342,14 @@ Below we implement many of the models available in both packages.
 
 ### `fable`
 
+```{r fable-arima}
+fable_workflow(model = ARIMA(MWh),
+               horizon = 30,
+               year = 2018)
+```
+
+
+
 ### `modeltime`
 
 ### {-}
@@ -239,6 +359,13 @@ Below we implement many of the models available in both packages.
 ### .
 
 ### `fable`
+
+```{r}
+fable_workflow(model = TSLM(MWh ~ trend() + season()),
+               horizon = 30,
+               year = 2018)
+```
+
 
 ### `modeltime`
 
@@ -250,6 +377,34 @@ Below we implement many of the models available in both packages.
 
 ### `fable`
 
+```{r}
+fable_workflow(model = ARIMA(MWh ~ trend() +
+                               season() +
+                               PDQ(0,0,0)),
+               horizon = 30,
+               year = 2018)
+```
+
+
+### `modeltime`
+
+### {-}
+
+
+## Harmonic dynamic regression {.tabset}
+
+### .
+
+### `fable`
+
+```{r}
+fable_workflow(model = ARIMA(MWh ~ fourier(period = "1 week", K = 2) + 
+                               fourier(period = "1 year", K = 20) +
+                               PDQ(0,0,0)),
+               horizon = 30,
+               year = 2018)
+```
+
 ### `modeltime`
 
 ### {-}
@@ -260,6 +415,12 @@ Below we implement many of the models available in both packages.
 
 ### `fable`
 
+```{r}
+fable_workflow(model = prophet(MWh),
+               horizon = 30,
+               year = 2018)
+```
+
 ### `modeltime`
 
 ### {-}
@@ -269,6 +430,29 @@ Below we implement many of the models available in both packages.
 ### .
 
 ### `fable`
+
+```{r}
+fable_workflow(model = prophet(MWh),
+               horizon = 30,
+               year = 2018)
+```
+
+
+### `modeltime`
+
+### {-}
+
+## Neural network autorregresion {.tabset}
+
+### .
+
+### `fable`
+
+```{r}
+fable_workflow(model = NNETAR(MWh),
+               horizon = 30,
+               year = 2018)
+```
 
 
 ### `modeltime`
@@ -290,3 +474,4 @@ Below we implement many of the models available in both packages.
 
 
 # Conclusions
+
