@@ -83,6 +83,8 @@ datos %>%
 
 # Exploratory Data Analysis (EDA)
 
+## Visual inspection
+
 We begin by plotting the data in a time plot, as well as in boxplots, first by day type, and then by month, as to check if we can find differences across time.
 
 
@@ -186,6 +188,36 @@ p5 +
 ```
 
 In both cases, we can now see clearer clusters forming, supporting what we saw on the boxplots. Also, adding a global trend line or a trend line for each day type shows a similar pattern.
+
+## Data transformations
+
+We check to see whether performing a transformation to our data could help us reduce irrelevant variation.
+
+First, we take the log values.
+
+```{r}
+p1_log <- g1 + geom_line(aes(y = log(MWh)), color = "orchid") + 
+  ggtitle("Log of historic Load") + ylab("log(MWh)")
+
+p1 / p1_log
+```
+
+Now, we try using a Box-Cox transformation, choosing lambda with the Guerrero feature.
+
+```{r}
+lambda <- datos %>%
+  features(MWh, features = guerrero) %>%
+  pull(lambda_guerrero)
+
+lambda
+
+p1_boxcox <- g1 + geom_line(aes(y = box_cox(MWh, lambda = lambda)), color = "turquoise") + 
+  ggtitle("Log of historic Load") + ylab("log(MWh)")
+
+p1 / p1_boxcox
+```
+
+
 
 
 # `R` Packages for modeling and forecasting
@@ -314,6 +346,38 @@ datos %>%
   autoplot() + xlab("year") +
   ggtitle("STL decomposition")
 ```
+
+* Modeling and forecasting using STL and ARIMA:
+
+```{r}
+fable_workflow(data = datos, 
+               model = decomposition_model(
+                 STL(MWh ~ trend(window = 183)),
+                 ARIMA(season_adjust ~ PDQ(0,0,0))
+               ))
+```
+
+* Using STL and ETS:
+
+```{r}
+fable_workflow(data = datos, 
+               model = decomposition_model(
+                 STL(MWh ~ trend(window = 183)),
+                 ETS(season_adjust ~ season("N"))
+               ))
+```
+* Using STL, ARIMA, fourier:
+
+```{r}
+fable_workflow(data = datos, 
+               model = decomposition_model(
+                 STL(MWh ~ trend(window = 183)),
+                 ARIMA(season_adjust ~ PDQ(0,0,0)),
+                 TSLM(season_year ~ fourier(K = 10, period = "1 year")),
+                 TSLM(season_week ~ fourier(K = 2, period = "1 week"))
+               ))
+```
+
 
 ### `modeltime`
 
