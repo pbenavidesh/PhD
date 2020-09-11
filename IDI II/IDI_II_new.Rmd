@@ -196,7 +196,7 @@ We check to see whether performing a transformation to our data could help us re
 First, we take the log values.
 
 ```{r}
-p1_log <- g1 + geom_line(aes(y = log(MWh)), color = "orchid") + 
+p1_log <- g1 + geom_line(aes(y = log(MWh)), color = "orchid2") + 
   ggtitle("Log of historic Load") + ylab("log(MWh)")
 
 p1 / p1_log
@@ -205,14 +205,15 @@ p1 / p1_log
 Now, we try using a Box-Cox transformation, choosing lambda with the Guerrero feature.
 
 ```{r}
-lambda <- datos %>%
+lambda <- datos %>% 
+  slice_head(n = nrow(datos) - 30) %>% 
   features(MWh, features = guerrero) %>%
   pull(lambda_guerrero)
 
 lambda
 
-p1_boxcox <- g1 + geom_line(aes(y = box_cox(MWh, lambda = lambda)), color = "turquoise") + 
-  ggtitle("Log of historic Load") + ylab("log(MWh)")
+p1_boxcox <- g1 + geom_line(aes(y = box_cox(MWh, lambda = lambda)), color = "turquoise2") + 
+  ggtitle("Historic Load with a Box-Cox transformation") + ylab(paste0("Box-Cox using lambda = ",round(lambda,digits = 4)))
 
 p1 / p1_boxcox
 ```
@@ -352,7 +353,7 @@ datos %>%
 ```{r}
 fable_workflow(data = datos, 
                model = decomposition_model(
-                 STL(MWh ~ trend(window = 183)),
+                 STL(box_cox(MWh, lambda = lambda) ~ trend(window = 183)),
                  ARIMA(season_adjust ~ PDQ(0,0,0))
                ))
 ```
@@ -362,7 +363,7 @@ fable_workflow(data = datos,
 ```{r}
 fable_workflow(data = datos, 
                model = decomposition_model(
-                 STL(MWh ~ trend(window = 183)),
+                 STL(box_cox(MWh, lambda = lambda) ~ trend(window = 183)),
                  ETS(season_adjust ~ season("N"))
                ))
 ```
@@ -371,7 +372,7 @@ fable_workflow(data = datos,
 ```{r}
 fable_workflow(data = datos, 
                model = decomposition_model(
-                 STL(MWh ~ trend(window = 183)),
+                 STL(box_cox(MWh, lambda = lambda) ~ trend(window = 183)),
                  ARIMA(season_adjust ~ PDQ(0,0,0)),
                  TSLM(season_year ~ fourier(K = 10, period = "1 year")),
                  TSLM(season_week ~ fourier(K = 2, period = "1 week"))
@@ -462,8 +463,17 @@ fable_workflow(model = ARIMA(MWh ~ trend() +
 ### `fable`
 
 ```{r}
+fable_workflow(model = ARIMA(box_cox(MWh, lambda) ~ fourier(period = "1 week", K = 2) + 
+                               fourier(period = "1 year", K = 15) +
+                               PDQ(0,0,0)),
+               horizon = 30,
+               year = 2018)
+```
+
+
+```{r}
 fable_workflow(model = ARIMA(MWh ~ fourier(period = "1 week", K = 2) + 
-                               fourier(period = "1 year", K = 20) +
+                               fourier(period = "1 year", K = 15) +
                                PDQ(0,0,0)),
                horizon = 30,
                year = 2018)
@@ -496,7 +506,8 @@ fable_workflow(model = prophet(MWh),
 ### `fable`
 
 ```{r}
-fable_workflow(model = prophet(MWh),
+fable_workflow(model = fasster(MWh ~ fourier(period = "1 week", K = 2) +
+                                 fourier(period = "1 year", K = 10)),
                horizon = 30,
                year = 2018)
 ```
@@ -513,7 +524,17 @@ fable_workflow(model = prophet(MWh),
 ### `fable`
 
 ```{r}
-fable_workflow(model = NNETAR(MWh),
+fable_workflow(model = decomposition_model(
+  STL(MWh ~ trend(window = 183)),
+  NNETAR(season_adjust)
+),
+               horizon = 30,
+               year = 2018)
+```
+
+
+```{r}
+fable_workflow(model = NNETAR(box_cox(MWh, lambda = lambda)),
                horizon = 30,
                year = 2018)
 ```
