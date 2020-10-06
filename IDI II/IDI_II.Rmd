@@ -93,9 +93,12 @@ datos <- datos %>%
          Month = month(fecha, label = TRUE) %>% factor(ordered = F)
          ) %>% 
   as_tsibble(index = fecha) %>% 
-  rename(`temp min` = temp_min, 
-         `temp max` = temp_max,
-         `temp prom` = temp_prom)
+  rename(`Min temp`  = temp_min, 
+         `Max temp`  = temp_max,
+         `Mean temp` = temp_prom,
+         Cloudiness  = nubosidad,
+         Wind        = viento,
+         Rain        = lluvia)
 datos
 ```
 
@@ -117,17 +120,17 @@ datos %>%
 ```{r plot, fig.width=12, fig.height=10}
 g1 <- ggplot(datos,aes(x = fecha, y = MWh))
 # Time plot
-p1 <- g1 + geom_line() + 
+p1 <- g1 + geom_line(color = "blue") + 
   ggtitle("Historic Load") 
 # Day type boxplot
-p2 <- g1 + geom_boxplot(aes(x = Day_type, color = Day_type)) + 
+p2 <- g1 + geom_boxplot(aes(x = Day_type, fill = Day_type)) + 
   theme(legend.position = "none",
         axis.text.x =  element_text(angle = 45,
                                       hjust = 1)) + 
   ggtitle("Load Across Day Types")
 # Month boxplot
 p3 <- g1 + geom_boxplot(aes(x = Month, 
-  color = Month)
+  fill = Month)
   ) + 
   theme(legend.position = "none",
         axis.text.x =  element_text(angle = 45,
@@ -135,6 +138,8 @@ p3 <- g1 + geom_boxplot(aes(x = Month,
   ggtitle("Load Across Months")
 # plot group 1
 pg1 <- p1 / (p2 | p3)
+
+pg1
 
 pg1 + plot_annotation(
   title = " Daily Electricity Load in the GCROC"
@@ -145,30 +150,35 @@ We see differences across day types and across months, suggesting year seasonali
 
 ```{r stats}
 datos  %>%  
-  features_if(is_double,features =
-                         list(media = mean,
-       `desv. std` = sd,
-       min = min,
-       mediana = median,
-       max = max,
-       n = length), na.rm = T
-       ) %>% 
+  features_if(
+    is_double,
+    features =list(
+      Mean = mean,
+      SD = sd,
+      Min = min,
+      Median = median,
+      Max = max,
+      n = length),
+    na.rm = TRUE
+  ) %>% 
   pivot_longer(everything()) %>% 
-  separate(name, into = c("var","stat"), sep = "_") %>% 
-  pivot_wider(names_from = "var",values_from = "value")
+  separate(name, into = c("var","Stat"), sep = "_") %>% 
+  filter(var %in% c("MWh", "Min temp", "Max temp", "Mean temp")) %>% 
+  pivot_wider(names_from = "var",values_from = "value") # %>% 
+  # xtable() %>% print()
 ```
 
 We check for the relationship between electricity load and temperature.
 
 ```{r MWh v. temp, fig.width=12, fig.height=10}
 p4 <- datos %>% 
-  ggplot(aes(x = `temp max`, y = MWh)) + 
+  ggplot(aes(x = `Max temp`, y = MWh)) + 
   geom_point() + ggtitle("Maximum Temperature") + 
   xlab("(C°)") + geom_smooth(method = "lm", formula = y ~ x + I(x^2))# +
   # facet_wrap(~ factor(year(fecha)))
 
 p5 <- datos %>% 
-  ggplot(aes(x = `temp min`, y = MWh)) + 
+  ggplot(aes(x = `Min temp`, y = MWh)) + 
   geom_point() + ggtitle("Minimum temperature") + 
   xlab("(C°)") + theme(legend.position = "none") + geom_smooth(method = "lm", formula = y ~ x + I(x^2))# +
   # facet_wrap(~ factor(year(fecha)))
