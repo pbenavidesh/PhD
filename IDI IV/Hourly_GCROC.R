@@ -55,6 +55,9 @@ hour_load_tidy_tbl
 hour_load_tidy_tbl %>% 
   tk_summary_diagnostics()
 
+hour_load_tidy_tbl %>% 
+  pull(date) %>% 
+  tk_get_timeseries_summary()
 
 # * Visualization ---------------------------------------------------------
 
@@ -136,7 +139,8 @@ recipe_spec <- training(splits) %>%
   step_normalize(ends_with("index.num"),
                  ends_with("_year")) %>% 
   
-  step_dummy(all_nominal())
+  step_dummy(all_nominal()) %>% 
+  step_interact()
 
 # View the recipe_spec
 recipe_spec %>% prep() %>% juice() %>% glimpse()
