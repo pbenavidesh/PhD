@@ -44,7 +44,7 @@ hour_load_tidy_tbl <- hour_load_tbl %>%
   ) %>% 
   drop_na()
 
-hour_load_tidy_tbl
+hour_load_tidy_tbl # %>% write_csv(path = "consumo_horario.csv")
 
 # EDA ---------------------------------------------------------------------
 
@@ -89,6 +89,13 @@ hour_load_tidy_tbl %>%
 hour_filtered_tbl <- hour_load_tidy_tbl %>% 
   filter(Hour == 19)
 
+hour_day_filtered_tbl <- hour_load_tidy_tbl %>% 
+  filter(Hour == 19,
+         Day == "Mon")
+
+hour_day_filtered_tbl %>% 
+  plot_time_series(date, MWh, .smooth = FALSE)
+
 # FEATURE ENGINEERING -----------------------------------------------------
 
 
@@ -108,8 +115,19 @@ hour_filtered_tbl %>%
   )
 
 
+# hour day ----------------------------------------------------------------
+
+hour_day_filtered_tbl %>% 
+  summarise_by_time(
+    date,
+    .by = "year",
+    n = n()
+  )
+
+
 # * Train/test splits -----------------------------------------------------
 
+# splits <- hour_day_filtered_tbl %>% 
 splits <- hour_filtered_tbl %>% 
   time_series_split(
     date_var   = date,
@@ -126,21 +144,27 @@ splits %>%
 recipe_spec <- training(splits) %>% 
   recipe(MWh ~ .) %>% 
   
-  step_timeseries_signature(date) %>% 
-  
+  step_timeseries_signature(date) %>%
+
+  step_fourier(date, period = c(52), K = 2) %>%
+
+  step_normalize(ends_with("index.num"),
+                 ends_with("_year")) %>%
+
+  step_unorder(all_nominal()) %>%
+
+  step_dummy(all_nominal()) %>%
+
   step_rm(ends_with(".iso"), ends_with(".xts"),
           contains("second"), contains("minute"),
           ends_with("_hour12"), ends_with("hour"),
-          ends_with("_half"), ends_with("am.pm")
-          ) %>% 
-  
-  step_fourier(date, period = c(7, 365), K = 2) %>% 
-  
-  step_normalize(ends_with("index.num"),
-                 ends_with("_year")) %>% 
-  
-  step_dummy(all_nominal()) %>% 
-  step_interact()
+          ends_with("_half"), ends_with("am.pm"),
+          starts_with("Day_"),
+          ends_with("week"), contains("date_week"),
+          date_quarter, date_month, date_mday7,
+          date_day, date_wday, date_mday, date_qday,
+          date_yday) #%>% 
+  #step_interact(terms = ~ contains("52") * )
 
 # View the recipe_spec
 recipe_spec %>% prep() %>% juice() %>% glimpse()
@@ -148,8 +172,8 @@ recipe_spec %>% prep() %>% juice() %>% glimpse()
 
 # ML SPECS ----------------------------------------------------------------
 
-model_spec <- linear_reg() %>% 
-  set_engine("lm")
+model_spec <- arima_reg() %>% 
+  set_engine("auto_arima")
 
 workflow_fit_arima <- workflow() %>% 
   add_model(model_spec) %>% 
