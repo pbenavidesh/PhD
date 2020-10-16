@@ -23,6 +23,10 @@ hour_load_tbl <- read_excel(
   skip = 1
 )
 
+holidays_tbl <- read_csv("./IDI II/festivos_utf8.csv") %>% 
+  mutate(fecha = dmy(fecha))
+
+holidays <- holidays_tbl %>% distinct(festivo) %>% pull()
 
 # * Wrangling -------------------------------------------------------------
 
@@ -40,11 +44,20 @@ hour_load_tidy_tbl <- hour_load_tbl %>%
                label  = TRUE, 
                locale = Sys.setlocale("LC_TIME","English")),
     Hour = hour(date),
-    MWh = `(MWh)`
+    MWh = `(MWh)`,
+    fecha = as_date(date)
   ) %>% 
-  drop_na()
+  drop_na() %>% 
+  # joining holidays data
+  left_join(holidays_tbl, by = c("fecha" = "fecha")) %>% 
+  #cleaning holidays
+  mutate(
+    festivo = if_else(is.na(festivo), "No",festivo) %>% 
+      factor(levels = c("No", holidays))
+  )
 
-hour_load_tidy_tbl # %>% write_csv(path = "consumo_horario.csv")
+hour_load_tidy_tbl
+
 
 # EDA ---------------------------------------------------------------------
 
@@ -88,6 +101,13 @@ hour_load_tidy_tbl %>%
 
 hour_filtered_tbl <- hour_load_tidy_tbl %>% 
   filter(Hour == 19)
+
+hour_filtered_tbl %>% 
+  plot_time_series(date, MWh, .smooth = FALSE)
+
+hour_filtered_tbl %>% 
+  plot_time_series(date, box_cox_vec(MWh), .smooth = FALSE)
+
 
 hour_day_filtered_tbl <- hour_load_tidy_tbl %>% 
   filter(Hour == 19,
@@ -144,6 +164,8 @@ splits %>%
 recipe_spec <- training(splits) %>% 
   recipe(MWh ~ .) %>% 
   
+  step_box_cox(MWh, method = "guerrero") %>% 
+  
   step_timeseries_signature(date) %>%
 
   step_fourier(date, period = c(52), K = 2) %>%
@@ -163,17 +185,25 @@ recipe_spec <- training(splits) %>%
           ends_with("week"), contains("date_week"),
           date_quarter, date_month, date_mday7,
           date_day, date_wday, date_mday, date_qday,
-          date_yday) #%>% 
-  #step_interact(terms = ~ contains("52") * )
+          date_yday) %>% 
+  # step_interact(terms = ~ contains("52") * contains("month")) %>%
+  step_interact(terms = ~ contains("52") * contains("festivo")) %>%
+  step_interact(terms = ~ contains("festivo") * contains("wday"))# %>%
+  # step_interact(terms = ~ contains("52") * contains("wday")) %>% 
+  # step_interact(terms = ~ contains("month") * contains("wday"))
+  # step_interact(terms = ~ contains("month") * contains("wday") *
+  #               contains("52") * contains("festivo"))
 
 # View the recipe_spec
 recipe_spec %>% prep() %>% juice() %>% glimpse()
-
+# Export the data with the features
+# recipe_spec %>% prep() %>% juice() %>% 
+#   write_csv("consumo_horario_19_feats3.csv")
 
 # ML SPECS ----------------------------------------------------------------
 
-model_spec <- arima_reg() %>% 
-  set_engine("auto_arima")
+model_spec <- linear_reg() %>% 
+  set_engine("lm")
 
 workflow_fit_arima <- workflow() %>% 
   add_model(model_spec) %>% 
@@ -190,8 +220,6 @@ calibration_tbl <- modeltime_table(
 ) %>% 
   modeltime_calibrate(testing(splits))
 
-calibration_tbl
-
 calibration_tbl %>% modeltime_accuracy()
 
 calibration_tbl %>% 
@@ -205,3 +233,4 @@ calibration_tbl %>%
 calibration_tbl %>% 
   modeltime_residuals() %>% 
   plot_modeltime_residuals()
+
