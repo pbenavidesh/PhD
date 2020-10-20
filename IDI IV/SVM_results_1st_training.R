@@ -81,6 +81,26 @@ accuracy_metrics(y_test)
 
 # * data ------------------------------------------------------------------
 
+file_names_d730sw25mi10 <- list.files(path = "./IDI IV/SVM_hourly/d730, sw25, mi10/")
+
+y_files <- file_names_d730sw25mi10[str_starts(file_names_d730sw25mi10, "y")]
+
+y <- tibble(filename = y_files) %>% 
+  mutate(
+    file_contents = map(
+      y_files,
+      ~ read_csv(
+        file = file.path("./IDI IV/SVM_hourly/d730, sw25, mi10/",.),
+        trim_ws = TRUE,
+        col_names = c("t", "y", "E reg", "E MAPE", "v reg", "v MAPE"),
+        skip = 1
+      )
+    )
+  ) %>% 
+  unnest(c(file_contents))
+
+y <- y %>% 
+  separate(filename, into = c("y1", "type", "kernel", "D"), sep = "_")
 
 # * plots -----------------------------------------------------------------
 
