@@ -128,4 +128,9 @@ ggplotly(p)
 
 # * accuracy --------------------------------------------------------------
 
-
+y %>% 
+  summarise(
+    MAPE = mean(abs(1 - Estimation / y)*100),
+    RMSE = sqrt(mean((y - Estimation)^2))
+  ) %>% view()
+  
