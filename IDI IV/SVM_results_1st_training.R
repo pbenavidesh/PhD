@@ -81,9 +81,9 @@ accuracy_metrics(y_test)
 
 # * data ------------------------------------------------------------------
 
-file_names_d730sw25mi10 <- list.files(path = "./IDI IV/SVM_hourly/d730, sw25, mi10/")
+file_names <- list.files(path = "./IDI IV/SVM_hourly/corregido_d730, sw15, mi10/")
 
-y_files <- file_names_d730sw25mi10[str_starts(file_names_d730sw25mi10, "y")]
+y_files <- file_names[str_starts(file_names, "y")]
 
 y <- tibble(filename = y_files) %>% 
   mutate(
@@ -100,10 +100,31 @@ y <- tibble(filename = y_files) %>%
   unnest(c(file_contents))
 
 y <- y %>% 
-  separate(filename, into = c("y1", "type", "kernel", "D"), sep = "_")
+  separate(filename, into = c("y1", "type", "kernel", "D"), sep = "_") %>% 
+  select(-c(y1, D)) %>% 
+  mutate(t = if_else(type == "test", t + 723, t)) %>% 
+  pivot_longer(
+    cols      = `E reg`:`v MAPE`, 
+    names_to  = "Model",
+    values_to = "Estimation"
+  ) %>% 
+  group_by(type, kernel, Model)
+
+y  
+
+y %>% 
+  filter(Model %in% c("E MAPE", "v MAPE"))
 
 # * plots -----------------------------------------------------------------
 
+p <- y %>% 
+  filter(type == "test") %>% 
+  ggplot(aes(x = t)) +
+  geom_line(aes(y = y)) +
+  geom_line(aes(y = Estimation, color = Model)) +
+  facet_wrap(~ kernel, ncol = 1)
+
+ggplotly(p)
 
 # * accuracy --------------------------------------------------------------
 
